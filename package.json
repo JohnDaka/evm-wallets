@@ -1,0 +1,65 @@
+{
+  "name": "@dakaio/evm-wallets",
+  "version": "0.1.0",
+  "description": "Tells which browser wallet is really installed — MetaMask, Coinbase Wallet, or both, even when Coinbase hides MetaMask inside its own provider — and connects, switches networks, reads balances and sends transfers through it.",
+  "license": "MIT",
+  "author": "Dakaio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnDaka/evm-wallets.git"
+  },
+  "homepage": "https://github.com/JohnDaka/evm-wallets#readme",
+  "bugs": "https://github.com/JohnDaka/evm-wallets/issues",
+  "keywords": [
+    "ethereum",
+    "evm",
+    "wallet",
+    "metamask",
+    "coinbase-wallet",
+    "providerMap",
+    "web3",
+    "browser",
+    "wallet-detection"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/wallets.js",
+    "./dist/index.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"src/**/*.spec.ts\"",
+    "clean": "rm -rf dist",
+    "prepack": "npm run clean && npm run build",
+    "release": "node scripts/release.mjs"
+  },
+  "dependencies": {
+    "decimal.js": "^10.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "packageManager": "pnpm@11.20.0"
+}
