@@ -1,9 +1,9 @@
 {
   "name": "@dakaio/evm-wallets",
   "version": "0.1.0",
-  "description": "Tells which browser wallet is really installed — MetaMask, Coinbase Wallet, or both, even when Coinbase hides MetaMask inside its own provider — and connects, switches networks, reads balances and sends transfers through it.",
+  "description": "Tells which browser wallet is really installed (MetaMask, Coinbase Wallet, or both, even when Coinbase hides MetaMask inside its own provider), then connects, switches networks, reads balances and sends transfers through it.",
   "license": "MIT",
-  "author": "Dakaio",
+  "author": "dakaio.com",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JohnDaka/evm-wallets.git"
@@ -19,7 +19,8 @@
     "providerMap",
     "web3",
     "browser",
-    "wallet-detection"
+    "wallet-detection",
+    "eth"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,10 +48,13 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test \"src/**/*.spec.ts\"",
-    "clean": "rm -rf dist",
+    "lint": "eslint .",
+    "format": "eslint . --fix",
+    "test": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \"src/**/*.spec.ts\"",
+    "test:coverage": "node --test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-test-coverage --test-coverage-include=\"src/**/*.ts\" --test-coverage-exclude=\"src/**/*.spec.ts\" --test-coverage-exclude=\"src/testing/**\" --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"src/**/*.spec.ts\"",
+    "clean": "rimraf dist",
     "prepack": "npm run clean && npm run build",
     "release": "node scripts/release.mjs"
   },
@@ -58,8 +62,16 @@
     "decimal.js": "^10.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.0.0",
-    "typescript": "^5.9.0"
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^17.0.0",
+    "prettier": "^3.6.0",
+    "rimraf": "^6.1.3",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.71.0"
   },
   "packageManager": "pnpm@11.20.0"
 }

@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # npm provenance: the package page shows which commit and workflow built it.
+      # npm trusted publishing: npm takes this workflow's identity instead of a stored token, and
+      # the package page shows which commit and workflow built it (provenance).
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -19,14 +20,26 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          registry-url: https://registry.npmjs.org
+          # No registry-url: it writes an .npmrc with a placeholder token, which npm then sends
+          # instead of the workflow's identity. npm's own registry is the default anyway.
       - name: The tag is the package's version
         run: |
           version="$(node -p "require('./package.json').version")"
           test "v${version}" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} is not v${version}"; exit 1; }
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
-      - run: pnpm test
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: pnpm lint
+      - run: pnpm test:coverage
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install --global npm@latest
+      # A version already on npm (published by hand, or a re-run) is not an error: npm refuses to
+      # publish over it, so the run says so and stops here instead of failing.
+      - name: Publish, unless this version is on npm already
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if npm view "${name}@${version}" version > /dev/null 2>&1; then
+            echo "::notice::${name}@${version} is on npm already: nothing to publish."
+          else
+            npm publish
+          fi
