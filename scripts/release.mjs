@@ -21,13 +21,13 @@ const TAG_PREFIX = 'v';
 /** How git's output is read. */
 const ENCODING = 'utf8';
 
-/** What the script says, in the user's language. */
+/** What the script says. */
 const MESSAGE = {
-  DIRTY: 'В рабочей копии есть незакоммиченные изменения: закоммитьте или уберите их.',
+  DIRTY: 'The working copy has uncommitted changes: commit them or put them away first.',
   RELEASED: (tag) =>
-    `${tag} уже выпущен. Поднимите "version" в package.json (исправление – 0.1.0 → 0.1.1, ` +
-    'новое без поломок – 0.2.0) через PR и после слияния запустите снова.',
-  PUSHED: (tag) => `✔ ${tag} отправлен: публикация в npm – в Actions → publish.`,
+    `${tag} is released already. Raise "version" in package.json (a fix: 0.1.0 to 0.1.1, ` +
+    'something new that breaks nothing: 0.2.0) in a pull request, and run this again once it is merged.',
+  PUSHED: (tag) => `✔ ${tag} pushed: the publish workflow in Actions puts it on npm.`,
   FAILED: (message) => `✖ ${message}`,
 };
 
