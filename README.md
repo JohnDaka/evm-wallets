@@ -404,6 +404,7 @@ import {
   CHAIN_ID,
   fromHex,
   RPC_METHOD,
+  rpcRequest,
   textToHex,
   toHex,
   weiFromHex,
@@ -413,10 +414,9 @@ toHex(CHAIN_ID.POLYGON); // '0x89'
 fromHex(chainIdHex); // 137, from a chainChanged payload
 textToHex(JSON.stringify(metadata)); // '0x7b22…': UTF-8 bytes, as a transaction's data
 
-const balanceHex = await provider.request<string>({
-  method: RPC_METHOD.GET_BALANCE,
-  params: [address, BLOCK_TAG.LATEST],
-});
+const balanceHex = await provider.request<string>(
+  rpcRequest(RPC_METHOD.GET_BALANCE, [address, BLOCK_TAG.LATEST]),
+);
 weiFromHex(balanceHex); // 1234567000000000000n: exact, past 2^53
 ```
 
@@ -480,6 +480,7 @@ import { useEffect, useState } from 'react';
 import {
   PROVIDER_EVENT,
   RPC_METHOD,
+  rpcRequest,
   WALLET_MAP,
   type WALLET_TYPE,
   type WalletAddress,
@@ -505,7 +506,7 @@ export const useWalletAccount = (type: WALLET_TYPE): WalletAddress | null => {
 
     // The account the page is connected to now, asked without a prompt; then every change.
     provider
-      .request<WalletAddress[]>({ method: RPC_METHOD.ACCOUNTS })
+      .request<WalletAddress[]>(rpcRequest(RPC_METHOD.ACCOUNTS))
       .then(onAccountsChanged, () => onAccountsChanged([]));
     provider.on(PROVIDER_EVENT.ACCOUNTS_CHANGED, onAccountsChanged);
 

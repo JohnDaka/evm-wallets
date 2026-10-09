@@ -10,13 +10,14 @@ import assert from 'node:assert/strict';
 
 import { CHAIN_ID } from '../blockchain-networks.ts';
 import { WALLET_ERROR_MESSAGE, WalletError } from '../errors.ts';
-import type {
-  EthereumProvider,
-  PROVIDER_EVENT,
-  ProviderListener,
-  ProviderRpcError,
-  RequestArguments,
-  RPC_METHOD,
+import {
+  type EthereumProvider,
+  JSON_RPC_VERSION,
+  type PROVIDER_EVENT,
+  type ProviderListener,
+  type ProviderRpcError,
+  type RequestArguments,
+  type RPC_METHOD,
 } from '../ethereum.ts';
 import type { SendTransactionParams } from '../ethereum-wallet.ts';
 import { configureWallets, settings, type WalletLogger, type WalletSettings } from '../settings.ts';
@@ -76,12 +77,17 @@ export type ProviderFlags = Pick<EthereumProvider, 'isMetaMask' | 'isCoinbaseWal
  * An EIP-1193 provider as a wallet extension injects it. It answers each method with what the spec
  * gave it, rejecting when that is an `Error`, records every request, and keeps the listeners
  * subscribed to it so a spec can fire an event.
+ *
+ * It takes only whole JSON-RPC 2.0 calls, each with its own id, as Coinbase Wallet's extension
+ * does: asked `{ method }` alone, that opens its "Your wallet is ready" page instead of answering.
  */
 export class FakeProvider implements EthereumProvider {
   /** Which wallet it plays: tells fakes apart in assertions and in a page's report. */
   public readonly label: string;
-  /** Every request received, in order. */
+  /** Every request received, in order: its method and parameters. */
   public readonly requests: RequestArguments[] = [];
+  /** The ids the requests came with, in order. */
+  public readonly ids: number[] = [];
   /** Set the way MetaMask, and most wallets after it, set it. */
   public isMetaMask?: boolean;
   /** Set the way Coinbase Wallet sets it. */
@@ -111,9 +117,15 @@ export class FakeProvider implements EthereumProvider {
   }
 
   public async request<T>(args: RequestArguments): Promise<T> {
-    this.requests.push(args);
-    const given = this.answers[args.method as RPC_METHOD];
-    const answer = typeof given === 'function' ? (given as AnswerOf)(args.params) : given;
+    const { id, jsonrpc, method, params } = args;
+    const wholeCall = jsonrpc === JSON_RPC_VERSION && id !== undefined && Array.isArray(params);
+    if (!wholeCall) {
+      throw new Error(`${method} was not sent as a whole JSON-RPC 2.0 call`);
+    }
+    this.requests.push({ method, params });
+    this.ids.push(id);
+    const given = this.answers[method as RPC_METHOD];
+    const answer = typeof given === 'function' ? (given as AnswerOf)(params) : given;
     if (answer instanceof Error) {
       throw answer;
     }

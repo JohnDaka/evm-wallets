@@ -9,6 +9,7 @@ import {
   PROVIDER_ERROR_CODE,
   type ProviderRpcError,
   RPC_METHOD,
+  rpcRequest,
   textToHex,
   toHex,
   TRANSFER_GAS_LIMIT,
@@ -233,9 +234,9 @@ export class EthereumWallet extends AbstractWallet {
    */
   public async isConnected(): Promise<boolean> {
     try {
-      const accounts = await providerOf(this).request<WalletAddress[]>({
-        method: RPC_METHOD.ACCOUNTS,
-      });
+      const accounts = await providerOf(this).request<WalletAddress[]>(
+        rpcRequest(RPC_METHOD.ACCOUNTS),
+      );
       return accounts && accounts.length > 0;
     } catch (error) {
       settings.logger.error(WALLET_LOG.CONNECTION_CHECK_FAILED, error);
@@ -256,9 +257,9 @@ export class EthereumWallet extends AbstractWallet {
    */
   public async connect(): Promise<WalletAddress[]> {
     try {
-      const accounts = await providerOf(this).request<WalletAddress[]>({
-        method: RPC_METHOD.REQUEST_ACCOUNTS,
-      });
+      const accounts = await providerOf(this).request<WalletAddress[]>(
+        rpcRequest(RPC_METHOD.REQUEST_ACCOUNTS),
+      );
       return accounts;
     } catch (error) {
       settings.logger.error(WALLET_LOG.CONNECT_FAILED, error);
@@ -290,10 +291,9 @@ export class EthereumWallet extends AbstractWallet {
    */
   public async switchNetwork(chainId: number): Promise<void> {
     try {
-      await providerOf(this).request({
-        method: RPC_METHOD.SWITCH_CHAIN,
-        params: [{ chainId: toHex(chainId) }],
-      });
+      await providerOf(this).request(
+        rpcRequest(RPC_METHOD.SWITCH_CHAIN, [{ chainId: toHex(chainId) }]),
+      );
     } catch (error) {
       // 4902: the wallet does not know the chain; whether it can be added depends on the wallet.
       if ((error as ProviderRpcError).code === PROVIDER_ERROR_CODE.UNRECOGNIZED_CHAIN) {
@@ -365,16 +365,15 @@ export class EthereumWallet extends AbstractWallet {
 
       // A transfer goes out on the chain the wallet is on: on any other than its own, none is sent.
       const walletChainId = EthereumWallet.normalizeChainId(
-        await provider.request<string>({ method: RPC_METHOD.CHAIN_ID }),
+        await provider.request<string>(rpcRequest(RPC_METHOD.CHAIN_ID)),
       );
       const onTransferChain = walletChainId === chainId;
       if (!onTransferChain) {
         throw new WalletError(WALLET_ERROR.WRONG_NETWORK);
       }
 
-      const txHash = await provider.request<string>({
-        method: RPC_METHOD.SEND_TRANSACTION,
-        params: [
+      const txHash = await provider.request<string>(
+        rpcRequest(RPC_METHOD.SEND_TRANSACTION, [
           {
             from: fromAddress,
             to: toAddress,
@@ -384,8 +383,8 @@ export class EthereumWallet extends AbstractWallet {
             // Checked again by the wallet as it signs, in case the user switched in between.
             chainId: toHex(chainId),
           },
-        ],
-      });
+        ]),
+      );
 
       settings.logger.log(WALLET_LOG.TRANSACTION_SENT, {
         txHash,

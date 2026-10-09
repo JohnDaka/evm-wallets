@@ -1,6 +1,6 @@
 import { ADD_NETWORK_PARAMS } from './blockchain-networks.ts';
 import { WALLET_ERROR, WalletError } from './errors.ts';
-import { type EthereumProvider, RPC_METHOD, toHex } from './ethereum.ts';
+import { type EthereumProvider, RPC_METHOD, rpcRequest, toHex } from './ethereum.ts';
 import { EthereumWallet } from './ethereum-wallet.ts';
 import { WALLET_TYPE } from './types.ts';
 
@@ -97,9 +97,8 @@ export class MetaMaskWallet extends EthereumWallet {
       throw new WalletError(WALLET_ERROR.NETWORK_PARAMS_MISSING);
     }
 
-    await this.getProvider()?.request({
-      method: RPC_METHOD.ADD_CHAIN,
-      params: [{ chainId: toHex(chainId), ...networkParams }],
-    });
+    await this.getProvider()?.request(
+      rpcRequest(RPC_METHOD.ADD_CHAIN, [{ chainId: toHex(chainId), ...networkParams }]),
+    );
   }
 }

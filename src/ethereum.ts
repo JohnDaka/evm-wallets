@@ -8,7 +8,7 @@
  * JSON-RPC methods sent to a wallet's provider: the names EIP-1193 providers answer to.
  *
  * @example
- * const accounts = await provider.request<WalletAddress[]>({ method: RPC_METHOD.ACCOUNTS });
+ * const accounts = await provider.request<WalletAddress[]>(rpcRequest(RPC_METHOD.ACCOUNTS));
  */
 export const RPC_METHOD = {
   /** The accounts already connected to the page, without asking the user: `eth_accounts`. */
@@ -143,10 +143,9 @@ export const fromHex = (hex: string): number => parseInt(hex, HEX_RADIX);
  * @returns The amount in wei.
  * @throws SyntaxError when `hex` is not a number.
  * @example
- * const balanceHex = await provider.request<string>({
- *   method: RPC_METHOD.GET_BALANCE,
- *   params: [address, BLOCK_TAG.LATEST],
- * });
+ * const balanceHex = await provider.request<string>(
+ *   rpcRequest(RPC_METHOD.GET_BALANCE, [address, BLOCK_TAG.LATEST]),
+ * );
  * weiFromHex(balanceHex); // 1234567000000000000n
  */
 export const weiFromHex = (hex: string): bigint => BigInt(hex);
@@ -171,13 +170,43 @@ export const textToHex = (text: string): string =>
  */
 export type ProviderListener = (...payload: never[]) => void;
 
-/** A JSON-RPC request as EIP-1193's `request` takes it. */
+/** The JSON-RPC version every request names. */
+export const JSON_RPC_VERSION = '2.0';
+
+/**
+ * A JSON-RPC request as EIP-1193's `request` takes it. EIP-1193 needs only `method`; the wallets
+ * here always send the whole call, built by `rpcRequest`.
+ */
 export interface RequestArguments {
+  /** The call's own id. */
+  id?: number;
+  /** `JSON_RPC_VERSION`. */
+  jsonrpc?: typeof JSON_RPC_VERSION;
   /** The method to call: one of `RPC_METHOD`, or any other the wallet supports. */
   method: string;
-  /** The method's parameters, in order; left out for a method that takes none. */
+  /** The method's parameters, in order; empty for a method that takes none. */
   params?: unknown[];
 }
+
+/** The id of the last request built: each gets its own. */
+let lastRequestId = 0;
+
+/**
+ * A request as a whole JSON-RPC 2.0 call: an id of its own, the version, and `params` even when
+ * the method takes none. Coinbase Wallet's extension, asked `{ method }` alone, opens its "Your
+ * wallet is ready" page instead of its connect prompt, so every request the wallets send is built
+ * here.
+ *
+ * @param method - The method to call: one of `RPC_METHOD`, or any other the wallet supports.
+ * @param params - The method's parameters, in order.
+ * @returns What the provider's `request` takes.
+ * @example
+ * const accounts = await provider.request<WalletAddress[]>(rpcRequest(RPC_METHOD.REQUEST_ACCOUNTS));
+ */
+export const rpcRequest = (method: string, params: unknown[] = []): RequestArguments => {
+  lastRequestId += 1;
+  return { id: lastRequestId, jsonrpc: JSON_RPC_VERSION, method, params };
+};
 
 /**
  * The provider a wallet injects into the page (EIP-1193): `request` to call it, `on` and

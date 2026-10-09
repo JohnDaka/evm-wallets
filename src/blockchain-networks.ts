@@ -118,10 +118,11 @@ export type AddNetworkParams = {
  * know it yet (error 4902 on switching). Ethereum is not here: every wallet has it.
  *
  * @example
- * await provider.request({
- *   method: RPC_METHOD.ADD_CHAIN,
- *   params: [{ chainId: toHex(CHAIN_ID.POLYGON), ...ADD_NETWORK_PARAMS[CHAIN_ID.POLYGON] }],
- * });
+ * await provider.request(
+ *   rpcRequest(RPC_METHOD.ADD_CHAIN, [
+ *     { chainId: toHex(CHAIN_ID.POLYGON), ...ADD_NETWORK_PARAMS[CHAIN_ID.POLYGON] },
+ *   ]),
+ * );
  */
 export const ADD_NETWORK_PARAMS: Record<number, AddNetworkParams> = {
   [CHAIN_ID.BSC]: {

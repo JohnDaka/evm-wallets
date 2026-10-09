@@ -7,6 +7,7 @@ import {
   NATIVE_DECIMALS,
   NO_BALANCE,
   RPC_METHOD,
+  rpcRequest,
   weiFromHex,
 } from './ethereum.ts';
 import type { SendTransactionParams, TransactionResult } from './ethereum-wallet.ts';
@@ -99,10 +100,9 @@ export abstract class AbstractWallet {
         throw new WalletError(WALLET_ERROR.NO_PROVIDER);
       }
 
-      const balanceHex = await provider.request<string>({
-        method: RPC_METHOD.GET_BALANCE,
-        params: [address, BLOCK_TAG.LATEST],
-      });
+      const balanceHex = await provider.request<string>(
+        rpcRequest(RPC_METHOD.GET_BALANCE, [address, BLOCK_TAG.LATEST]),
+      );
 
       // Wei to coins in decimal arithmetic: a JS number would round a balance past 2^53 wei.
       const balanceInWei = weiFromHex(balanceHex);
