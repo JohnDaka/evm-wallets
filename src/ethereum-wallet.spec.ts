@@ -190,7 +190,7 @@ describe('EthereumWallet', () => {
       const accounts = [ADDRESS.USER, ADDRESS.OTHER];
       const { provider, wallet } = metaMaskWith({ [RPC_METHOD.REQUEST_ACCOUNTS]: accounts });
       assert.deepEqual(await wallet.connect(), accounts);
-      assert.deepEqual(provider.requests, [{ method: RPC_METHOD.REQUEST_ACCOUNTS }]);
+      assert.deepEqual(provider.requests, [{ method: RPC_METHOD.REQUEST_ACCOUNTS, params: [] }]);
     });
 
     it("throws the wallet's own error when the user refuses, and logs it", async () => {
@@ -250,7 +250,7 @@ describe('EthereumWallet', () => {
       const { provider, wallet } = metaMaskWith(SENDS_ON_ETHEREUM);
       assert.deepEqual(await wallet.sendTransaction(DEPOSIT), { txHash: TX_HASH, success: true });
       assert.deepEqual(provider.requests, [
-        { method: RPC_METHOD.CHAIN_ID },
+        { method: RPC_METHOD.CHAIN_ID, params: [] },
         {
           method: RPC_METHOD.SEND_TRANSACTION,
           params: [

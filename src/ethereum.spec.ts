@@ -8,11 +8,13 @@ import {
   DECIMAL_BASE,
   fromHex,
   HEX_PREFIX,
+  JSON_RPC_VERSION,
   NATIVE_DECIMALS,
   NO_BALANCE,
   PROVIDER_ERROR_CODE,
   PROVIDER_EVENT,
   RPC_METHOD,
+  rpcRequest,
   textToHex,
   toHex,
   TRANSFER_GAS_LIMIT,
@@ -119,5 +121,26 @@ describe('textToHex', () => {
   it('reads back as the same text', () => {
     const json = JSON.stringify({ depositId: 'A-12', note: 'café 🦊' });
     assert.equal(hexToText(textToHex(json)), json);
+  });
+});
+
+describe('rpcRequest', () => {
+  it('builds a whole JSON-RPC 2.0 call, params given even when the method takes none', () => {
+    const { id, ...call } = rpcRequest(RPC_METHOD.REQUEST_ACCOUNTS);
+    assert.equal(typeof id, 'number');
+    assert.deepEqual(call, {
+      jsonrpc: JSON_RPC_VERSION,
+      method: RPC_METHOD.REQUEST_ACCOUNTS,
+      params: [],
+    });
+    assert.deepEqual(rpcRequest(RPC_METHOD.SWITCH_CHAIN, [{ chainId: '0x89' }]).params, [
+      { chainId: '0x89' },
+    ]);
+  });
+
+  it('gives each request an id of its own', () => {
+    const first = rpcRequest(RPC_METHOD.CHAIN_ID).id ?? 0;
+    const second = rpcRequest(RPC_METHOD.CHAIN_ID).id ?? 0;
+    assert.ok(second > first);
   });
 });
