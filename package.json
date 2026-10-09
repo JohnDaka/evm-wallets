@@ -1,6 +1,6 @@
 {
   "name": "@dakaio/evm-wallets",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Tells which browser wallet is really installed (MetaMask, Coinbase Wallet, or both, even when Coinbase hides MetaMask inside its own provider), then connects, switches networks, reads balances and sends transfers through it.",
   "license": "MIT",
   "author": "dakaio.com",
